@@ -1,0 +1,33 @@
+{
+    "generator-jhipster": {
+        "promptValues": {
+            "packageName": "fr.fresnault"
+        },
+        "jhipsterVersion": "5.7.2",
+        "applicationType": "monolith",
+        "baseName": "webImmoScrapper",
+        "packageName": "fr.fresnault",
+        "packageFolder": "fr/fresnault",
+        "serverPort": "8080",
+        "authenticationType": "jwt",
+        "cacheProvider": "ehcache",
+        "enableHibernateCache": false,
+        "websocket": false,
+        "databaseType": "mongodb",
+        "devDatabaseType": "mongodb",
+        "prodDatabaseType": "mongodb",
+        "searchEngine": false,
+        "messageBroker": false,
+        "serviceDiscoveryType": false,
+        "buildTool": "maven",
+        "enableSwaggerCodegen": false,
+        "jwtSecretKey": "NjYxZGY0NWNhNWNiNjMwY2JmZjg2NmQ0ZmVhZjhhMzVlMzBlOGUxZDc3ZWZmYzgyNDliNDA3NjExZGUzNWFlYzA5ZTcxOGE4NmEyYjVkNTUzYmNlNzkwMzJhYmIyZWNhZTA1YTJmOGU0NDkyNmI2ZDY5NDk1N2FkZWFiYWM1NDk=",
+        "clientFramework": "angularX",
+        "useSass": false,
+        "clientPackageManager": "npm",
+        "testFrameworks": [],
+        "jhiPrefix": "jhi",
+        "otherModules": [],
+        "enableTranslation": false
+    }
+}
