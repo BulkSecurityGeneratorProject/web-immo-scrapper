@@ -3,6 +3,7 @@ package fr.fresnault.service;
 import fr.fresnault.WebImmoScrapperApp;
 import fr.fresnault.config.Constants;
 import fr.fresnault.domain.User;
+import fr.fresnault.repository.search.UserSearchRepository;
 import fr.fresnault.repository.UserRepository;
 import fr.fresnault.service.dto.UserDTO;
 import fr.fresnault.service.util.RandomUtil;
@@ -23,6 +24,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test class for the UserResource REST controller.
@@ -38,6 +41,14 @@ public class UserServiceIntTest {
 
     @Autowired
     private UserService userService;
+
+    /**
+     * This repository is mocked in the fr.fresnault.repository.search test package.
+     *
+     * @see fr.fresnault.repository.search.UserSearchRepositoryMockConfiguration
+     */
+    @Autowired
+    private UserSearchRepository mockUserSearchRepository;
 
     private User user;
 
@@ -136,6 +147,9 @@ public class UserServiceIntTest {
         userService.removeNotActivatedUsers();
         users = userRepository.findAllByActivatedIsFalseAndCreatedDateBefore(now.minus(3, ChronoUnit.DAYS));
         assertThat(users).isEmpty();
+
+        // Verify Elasticsearch mock
+        verify(mockUserSearchRepository, times(1)).delete(user);
     }
 
     @Test
@@ -164,6 +178,9 @@ public class UserServiceIntTest {
         assertThat(userRepository.findOneByLogin("johndoe")).isPresent();
         userService.removeNotActivatedUsers();
         assertThat(userRepository.findOneByLogin("johndoe")).isNotPresent();
+
+        // Verify Elasticsearch mock
+        verify(mockUserSearchRepository, times(1)).delete(user);
     }
 
 }
