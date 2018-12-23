@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * A Property.
  */
 @Document(collection = "property")
+@org.springframework.data.elasticsearch.annotations.Document(indexName = "property")
 public class Property implements Serializable {
 
 	private static final long serialVersionUID = 1L;
