@@ -4,6 +4,7 @@ import fr.fresnault.WebImmoScrapperApp;
 
 import fr.fresnault.domain.Property;
 import fr.fresnault.repository.PropertyRepository;
+import fr.fresnault.repository.search.PropertySearchRepository;
 import fr.fresnault.service.PropertyService;
 import fr.fresnault.web.rest.errors.ExceptionTranslator;
 
@@ -13,6 +14,8 @@ import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -25,13 +28,16 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.ZoneOffset;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 
 
 import static fr.fresnault.web.rest.TestUtil.sameInstant;
 import static fr.fresnault.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 import static org.hamcrest.Matchers.hasItem;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -70,6 +76,14 @@ public class PropertyResourceIntTest {
 
     @Autowired
     private PropertyService propertyService;
+
+    /**
+     * This repository is mocked in the fr.fresnault.repository.search test package.
+     *
+     * @see fr.fresnault.repository.search.PropertySearchRepositoryMockConfiguration
+     */
+    @Autowired
+    private PropertySearchRepository mockPropertySearchRepository;
 
     @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
@@ -144,6 +158,9 @@ public class PropertyResourceIntTest {
         assertThat(testProperty.getBody()).isEqualTo(DEFAULT_BODY);
         assertThat(testProperty.getUrl()).isEqualTo(DEFAULT_URL);
         assertThat(testProperty.getPrice()).isEqualTo(DEFAULT_PRICE);
+
+        // Validate the Property in Elasticsearch
+        verify(mockPropertySearchRepository, times(1)).save(testProperty);
     }
 
     @Test
@@ -162,6 +179,9 @@ public class PropertyResourceIntTest {
         // Validate the Property in the database
         List<Property> propertyList = propertyRepository.findAll();
         assertThat(propertyList).hasSize(databaseSizeBeforeCreate);
+
+        // Validate the Property in Elasticsearch
+        verify(mockPropertySearchRepository, times(0)).save(property);
     }
 
     @Test
@@ -332,6 +352,8 @@ public class PropertyResourceIntTest {
     public void updateProperty() throws Exception {
         // Initialize the database
         propertyService.save(property);
+        // As the test used the service layer, reset the Elasticsearch mock repository
+        reset(mockPropertySearchRepository);
 
         int databaseSizeBeforeUpdate = propertyRepository.findAll().size();
 
@@ -362,6 +384,9 @@ public class PropertyResourceIntTest {
         assertThat(testProperty.getBody()).isEqualTo(UPDATED_BODY);
         assertThat(testProperty.getUrl()).isEqualTo(UPDATED_URL);
         assertThat(testProperty.getPrice()).isEqualTo(UPDATED_PRICE);
+
+        // Validate the Property in Elasticsearch
+        verify(mockPropertySearchRepository, times(1)).save(testProperty);
     }
 
     @Test
@@ -379,6 +404,9 @@ public class PropertyResourceIntTest {
         // Validate the Property in the database
         List<Property> propertyList = propertyRepository.findAll();
         assertThat(propertyList).hasSize(databaseSizeBeforeUpdate);
+
+        // Validate the Property in Elasticsearch
+        verify(mockPropertySearchRepository, times(0)).save(property);
     }
 
     @Test
@@ -396,6 +424,29 @@ public class PropertyResourceIntTest {
         // Validate the database is empty
         List<Property> propertyList = propertyRepository.findAll();
         assertThat(propertyList).hasSize(databaseSizeBeforeDelete - 1);
+
+        // Validate the Property in Elasticsearch
+        verify(mockPropertySearchRepository, times(1)).deleteById(property.getId());
+    }
+
+    @Test
+    public void searchProperty() throws Exception {
+        // Initialize the database
+        propertyService.save(property);
+        when(mockPropertySearchRepository.search(queryStringQuery("id:" + property.getId()), PageRequest.of(0, 20)))
+            .thenReturn(new PageImpl<>(Collections.singletonList(property), PageRequest.of(0, 1), 1));
+        // Search the property
+        restPropertyMockMvc.perform(get("/api/_search/properties?query=id:" + property.getId()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(property.getId())))
+            .andExpect(jsonPath("$.[*].reference").value(hasItem(DEFAULT_REFERENCE)))
+            .andExpect(jsonPath("$.[*].publicationDate").value(hasItem(sameInstant(DEFAULT_PUBLICATION_DATE))))
+            .andExpect(jsonPath("$.[*].categoryName").value(hasItem(DEFAULT_CATEGORY_NAME)))
+            .andExpect(jsonPath("$.[*].subject").value(hasItem(DEFAULT_SUBJECT)))
+            .andExpect(jsonPath("$.[*].body").value(hasItem(DEFAULT_BODY)))
+            .andExpect(jsonPath("$.[*].url").value(hasItem(DEFAULT_URL)))
+            .andExpect(jsonPath("$.[*].price").value(hasItem(DEFAULT_PRICE)));
     }
 
     @Test

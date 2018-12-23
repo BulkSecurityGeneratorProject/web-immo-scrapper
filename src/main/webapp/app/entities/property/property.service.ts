@@ -15,6 +15,7 @@ type EntityArrayResponseType = HttpResponse<IProperty[]>;
 @Injectable({ providedIn: 'root' })
 export class PropertyService {
     public resourceUrl = SERVER_API_URL + 'api/properties';
+    public resourceSearchUrl = SERVER_API_URL + 'api/_search/properties';
 
     constructor(protected http: HttpClient) {}
 
@@ -47,6 +48,13 @@ export class PropertyService {
 
     delete(id: string): Observable<HttpResponse<any>> {
         return this.http.delete<any>(`${this.resourceUrl}/${id}`, { observe: 'response' });
+    }
+
+    search(req?: any): Observable<EntityArrayResponseType> {
+        const options = createRequestOption(req);
+        return this.http
+            .get<IProperty[]>(this.resourceSearchUrl, { params: options, observe: 'response' })
+            .pipe(map((res: EntityArrayResponseType) => this.convertDateArrayFromServer(res)));
     }
 
     protected convertDateFromClient(property: IProperty): IProperty {

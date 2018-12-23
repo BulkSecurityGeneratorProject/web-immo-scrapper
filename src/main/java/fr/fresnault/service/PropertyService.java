@@ -2,6 +2,7 @@ package fr.fresnault.service;
 
 import fr.fresnault.domain.Property;
 import fr.fresnault.repository.PropertyRepository;
+import fr.fresnault.repository.search.PropertySearchRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
+import static org.elasticsearch.index.query.QueryBuilders.*;
 
 /**
  * Service Implementation for managing Property.
@@ -21,8 +24,11 @@ public class PropertyService {
 
     private final PropertyRepository propertyRepository;
 
-    public PropertyService(PropertyRepository propertyRepository) {
+    private final PropertySearchRepository propertySearchRepository;
+
+    public PropertyService(PropertyRepository propertyRepository, PropertySearchRepository propertySearchRepository) {
         this.propertyRepository = propertyRepository;
+        this.propertySearchRepository = propertySearchRepository;
     }
 
     /**
@@ -33,7 +39,9 @@ public class PropertyService {
      */
     public Property save(Property property) {
         log.debug("Request to save Property : {}", property);
-        return propertyRepository.save(property);
+        Property result = propertyRepository.save(property);
+        propertySearchRepository.save(result);
+        return result;
     }
 
     /**
@@ -67,5 +75,17 @@ public class PropertyService {
     public void delete(String id) {
         log.debug("Request to delete Property : {}", id);
         propertyRepository.deleteById(id);
+        propertySearchRepository.deleteById(id);
     }
+
+    /**
+     * Search for the property corresponding to the query.
+     *
+     * @param query the query of the search
+     * @param pageable the pagination information
+     * @return the list of entities
+     */
+    public Page<Property> search(String query, Pageable pageable) {
+        log.debug("Request to search for a page of Properties for query {}", query);
+        return propertySearchRepository.search(queryStringQuery(query), pageable);    }
 }
