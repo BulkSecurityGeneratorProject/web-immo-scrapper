@@ -1,0 +1,122 @@
+<div class="row justify-content-center">
+    <div class="col-8">
+        <form name="editForm" role="form" novalidate (ngSubmit)="save()" #editForm="ngForm">
+            <h2 id="jhi-property-heading">Create or edit a Property</h2>
+            <div>
+                <jhi-alert-error></jhi-alert-error>
+                <div class="form-group" [hidden]="!property.id">
+                    <label for="id">ID</label>
+                    <input type="text" class="form-control" id="id" name="id"
+                        [(ngModel)]="property.id" readonly />
+                </div>
+                <div class="form-group">
+                    <label class="form-control-label" for="field_reference">Reference</label>
+                    <input type="number" class="form-control" name="reference" id="field_reference"
+                        [(ngModel)]="property.reference" required/>
+                    <div [hidden]="!(editForm.controls.reference?.dirty && editForm.controls.reference?.invalid)">
+                        <small class="form-text text-danger"
+                        [hidden]="!editForm.controls.reference?.errors?.required">
+                        This field is required.
+                        </small>
+                        <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.reference?.errors?.number">
+                            This field should be a number.
+                        </small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-control-label" for="field_publicationDate">Publication Date</label>
+                    <div class="d-flex">
+                        <input id="field_publicationDate" type="datetime-local" class="form-control" name="publicationDate" [(ngModel)]="publicationDate"
+                        required/>
+                    </div>
+                    <div [hidden]="!(editForm.controls.publicationDate?.dirty && editForm.controls.publicationDate?.invalid)">
+                        <small class="form-text text-danger"
+                        [hidden]="!editForm.controls.publicationDate?.errors?.required">
+                        This field is required.
+                        </small>
+                        <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.publicationDate?.errors?.ZonedDateTimelocal">
+                            This field should be a date and time.
+                        </small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-control-label" for="field_categoryName">Category Name</label>
+                    <input type="text" class="form-control" name="categoryName" id="field_categoryName"
+                        [(ngModel)]="property.categoryName" required/>
+                    <div [hidden]="!(editForm.controls.categoryName?.dirty && editForm.controls.categoryName?.invalid)">
+                        <small class="form-text text-danger"
+                        [hidden]="!editForm.controls.categoryName?.errors?.required">
+                        This field is required.
+                        </small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-control-label" for="field_subject">Subject</label>
+                    <input type="text" class="form-control" name="subject" id="field_subject"
+                        [(ngModel)]="property.subject" required/>
+                    <div [hidden]="!(editForm.controls.subject?.dirty && editForm.controls.subject?.invalid)">
+                        <small class="form-text text-danger"
+                        [hidden]="!editForm.controls.subject?.errors?.required">
+                        This field is required.
+                        </small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-control-label" for="field_body">Body</label>
+                    <input type="text" class="form-control" name="body" id="field_body"
+                        [(ngModel)]="property.body" required/>
+                    <div [hidden]="!(editForm.controls.body?.dirty && editForm.controls.body?.invalid)">
+                        <small class="form-text text-danger"
+                        [hidden]="!editForm.controls.body?.errors?.required">
+                        This field is required.
+                        </small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-control-label" for="field_url">Url</label>
+                    <input type="text" class="form-control" name="url" id="field_url"
+                        [(ngModel)]="property.url" required/>
+                    <div [hidden]="!(editForm.controls.url?.dirty && editForm.controls.url?.invalid)">
+                        <small class="form-text text-danger"
+                        [hidden]="!editForm.controls.url?.errors?.required">
+                        This field is required.
+                        </small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-control-label" for="field_price">Price</label>
+                    <input type="number" class="form-control" name="price" id="field_price"
+                        [(ngModel)]="property.price" required/>
+                    <div [hidden]="!(editForm.controls.price?.dirty && editForm.controls.price?.invalid)">
+                        <small class="form-text text-danger"
+                        [hidden]="!editForm.controls.price?.errors?.required">
+                        This field is required.
+                        </small>
+                        <small class="form-text text-danger"
+                            [hidden]="!editForm.controls.price?.errors?.number">
+                            This field should be a number.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" for="field_location">Location</label>
+                    <select class="form-control" id="field_location" name="location" [(ngModel)]="property.location" >
+                        <option [ngValue]="null"></option>
+                        <option [ngValue]="locationOption.id === property.location?.id ? property.location : locationOption" *ngFor="let locationOption of locations; trackBy: trackLocationById">{{locationOption.id}}</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <button type="button" id="cancel-save" class="btn btn-secondary"  (click)="previousState()">
+                    <fa-icon [icon]="'ban'"></fa-icon>&nbsp;<span>Cancel</span>
+                </button>
+                <button type="submit" id="save-entity" [disabled]="editForm.form.invalid || isSaving" class="btn btn-primary">
+                    <fa-icon [icon]="'save'"></fa-icon>&nbsp;<span>Save</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
